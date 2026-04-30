@@ -64,7 +64,7 @@ Antes de crear un archivo, determinar DONDE va:
 | Framework, metodologia, conocimiento profundo | `01 Growth Engine/{Depto}/{Sub-tema}/` |
 | Analisis de contenido externo | `04 Content Hacking/{Pilar}/` |
 | Credencial propia de Maze Funnels (API key, token, password, MCP) | `05 Credenciales/` — **NUNCA en Memoria/** |
-| Credencial de acceso a sistemas de un cliente | `05 Credenciales/Clientes/{Nombre Cliente}/Accesos.md` — **NUNCA en `02 Clientes/`** |
+| Credencial de acceso a sistemas de un cliente | `02 Clientes/{Plan}/{Cliente}/Credenciales.md` — **NUNCA en `05 Credenciales/`** |
 | Contexto persistente de un agente (feedback, proyecto, referencia, usuario, contexto) | `00 Agentes/{Agente}/Memoria/` |
 | Identidad o config de agente | `00 Agentes/{Agente}/Identidad.md` |
 
@@ -75,7 +75,9 @@ Antes de crear un archivo, determinar DONDE va:
 **NUNCA guardar API keys, tokens, passwords ni credenciales en `Memoria/`.** Si un archivo de memoria necesita referenciar credenciales, escribe `Ver [[05 Credenciales/APIs y Tokens]]` y nada mas.
 
 ### REGLA CRITICA — Credenciales de clientes
-**NUNCA guardar credenciales de clientes dentro de `02 Clientes/`.** Toda credencial de acceso a sistemas externos de un cliente va en `05 Credenciales/Clientes/{Nombre}/Accesos.md`. Si una ficha de cliente necesita referenciarlas, escribir `Ver [[05 Credenciales/Clientes/{Nombre}/Accesos]]` — nada mas.
+**Las credenciales de clientes van SIEMPRE dentro de la carpeta del cliente: `02 Clientes/{Plan}/{Cliente}/Credenciales.md`.** NUNCA en `05 Credenciales/`. Sin excepción.
+
+`05 Credenciales/` es EXCLUSIVAMENTE para infraestructura interna de Maze Funnels.
 
 **Estructura de `05 Credenciales/`:**
 ```
@@ -83,9 +85,6 @@ Antes de crear un archivo, determinar DONDE va:
   APIs y Tokens.md          <- Maze Funnels: APIs propias
   Servicios.md              <- Maze Funnels: servicios y suscripciones
   MCPs.md                   <- Maze Funnels: servidores MCP
-  Clientes/
-    {Nombre Cliente}/
-      Accesos.md            <- Credenciales de acceso a sus sistemas
 ```
 
 ---
@@ -326,7 +325,7 @@ Obsidian es un grafo de conocimiento. Los nodos sin links son informacion muerta
 | `00 Agentes/{X}/Identidad.md` | `[[00 Agentes/{X}/Memoria/MEMORY]]` + `[[Sistema de Agentes]]` |
 | `02 Clientes/{Plan}/{Cliente}.md` | Al SOP de onboarding del plan |
 | `02 Clientes/{Plan}/{Cliente}/Accesos.md` (sub-archivos) | `[[02 Clientes/{Plan}/{Cliente}/{Cliente}]]` (ficha principal del cliente) |
-| `05 Credenciales/Clientes/{Nombre}/Accesos.md` | `[[02 Clientes/{Plan}/{Nombre}/{Nombre}]]` (ficha principal del cliente) |
+| `02 Clientes/{Plan}/{Cliente}/Credenciales.md` | `[[02 Clientes/{Plan}/{Cliente}/{Cliente}]]` (ficha principal del cliente) |
 | `03 SOPs/{Depto}/SOP - *.md` | `[[01 Growth Engine/{Depto}/{Depto}]]` |
 | `01 Growth Engine/{Depto}/{Depto}.md` | A sus SOPs y agentes responsables |
 | `04 Content Hacking/{Pilar}/@*.md` | `[[{Pilar}]]` (su propio pilar — la carpeta donde vive) |
