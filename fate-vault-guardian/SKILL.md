@@ -323,6 +323,8 @@ Obsidian es un grafo de conocimiento. Los nodos sin links son informacion muerta
 | `Memoria/feedback_*.md` | Al SOP relacionado si existe |
 | `00 Agentes/{X}/Identidad.md` | `[[00 Agentes/{X}/Memoria/MEMORY]]` + `[[Sistema de Agentes]]` |
 | `02 Clientes/{Plan}/{Cliente}.md` | Al SOP de onboarding del plan |
+| `02 Clientes/{Plan}/{Cliente}/Accesos.md` (sub-archivos) | `[[02 Clientes/{Plan}/{Cliente}/{Cliente}]]` (ficha principal del cliente) |
+| `05 Credenciales/Clientes/{Nombre}/Accesos.md` | `[[02 Clientes/{Plan}/{Nombre}/{Nombre}]]` (ficha principal del cliente) |
 | `03 SOPs/{Depto}/SOP - *.md` | `[[01 Growth Engine/{Depto}/{Depto}]]` |
 | `01 Growth Engine/{Depto}/{Depto}.md` | A sus SOPs y agentes responsables |
 | `04 Content Hacking/{Pilar}/@*.md` | `[[{Pilar}]]` (su propio pilar — la carpeta donde vive) |
