@@ -28,7 +28,29 @@ jobs:
 
           PAYLOAD=$(cat <<EOF
           {
-            "content": "**📦 Push en \`$REPO\`**\n\`$BRANCH\` → [\`$SHORT_SHA\`]($COMMIT_URL)\n> $COMMIT_MSG\n— $AUTHOR"
+            "embeds": [
+              {
+                "title": "📦 Actualización en \`obsidian-setup\`",
+                "color": 5814783,
+                "fields": [
+                  {
+                    "name": "Commit",
+                    "value": "[\`$SHORT_SHA\`]($COMMIT_URL) — $COMMIT_MSG",
+                    "inline": false
+                  },
+                  {
+                    "name": "Rama · Autor",
+                    "value": "\`$BRANCH\` · $AUTHOR",
+                    "inline": false
+                  },
+                  {
+                    "name": "🔄 Cómo actualizar en tu máquina",
+                    "value": "**Si ya tienes el repo clonado:**\n\`\`\`bash\ncd obsidian-setup\ngit pull\ncp fate-vault-guardian/SKILL.md ~/.claude/skills/fate-vault-guardian/\n\`\`\`\n**Si es tu primera vez:**\n\`\`\`bash\ncurl -sSL https://raw.githubusercontent.com/mazeos/obsidian-setup/main/install.sh | bash\n\`\`\`",
+                    "inline": false
+                  }
+                ]
+              }
+            ]
           }
           EOF
           )
