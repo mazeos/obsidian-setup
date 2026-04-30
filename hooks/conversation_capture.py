@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-"""Claude Code Stop Hook — Captura conversaciones al vault de Obsidian
+"""Claude Code Stop Hook — Captura conversaciones al Fate Vault
 
 Se ejecuta despues de cada respuesta de Claude (evento Stop).
 Escribe/sobreescribe el .md de la sesion actual en:
-  vault / 01 Growth Engine / Infraestructura IA / Claude Code / Conversaciones / {fecha} /
-
-CONFIGURAR: editar las variables de la seccion CONFIG antes de usar.
+  Fate Vault / 01 Growth Engine / Infraestructura IA / Claude Code / Conversaciones / {fecha} /
 """
 
 import sys
@@ -15,14 +13,9 @@ import re
 from pathlib import Path
 from datetime import datetime, timezone
 
-# ============================================================
-# CONFIG — adaptar a tu entorno
-# ============================================================
-VAULT = "/ruta/a/tu/vault"
+VAULT = "/Users/alevogeler/Documents/Fate Vault"
 CONVERSACIONES_DIR = f"{VAULT}/01 Growth Engine/Infraestructura IA/Claude Code/Conversaciones"
 CLAUDE_PROJECTS = os.path.expanduser("~/.claude/projects")
-NOMBRE_USUARIO = "Usuario"   # ← tu nombre, aparece en los logs
-# ============================================================
 
 
 def leer_stdin():
@@ -36,6 +29,8 @@ def leer_stdin():
 
 
 def encontrar_jsonl(data, session_id):
+    """Encuentra el archivo JSONL de la sesion en cualquier proyecto."""
+    # Opcion 1: transcript_path en stdin
     tp = data.get("transcript_path")
     if tp:
         p = Path(tp)
@@ -45,6 +40,7 @@ def encontrar_jsonl(data, session_id):
     if not session_id:
         return None
 
+    # Opcion 2: buscar en todos los directorios de proyecto
     for project_dir in Path(CLAUDE_PROJECTS).iterdir():
         if not project_dir.is_dir():
             continue
@@ -56,7 +52,9 @@ def encontrar_jsonl(data, session_id):
 
 
 def extraer_texto(content):
+    """Extrae texto plano de message.content (string o array)."""
     if isinstance(content, str):
+        # Eliminar bloques de tags XML del sistema
         text = re.sub(r'<[^>]+>[\s\S]*?</[^>]+>', '', content)
         text = re.sub(r'<[^>]+/>', '', text)
         return text.strip()
@@ -70,18 +68,24 @@ def extraer_texto(content):
 
 
 def es_mensaje_real_usuario(linea):
+    """True si es un mensaje genuino del usuario (no sistema ni meta)."""
     if linea.get("isMeta"):
         return False
     content = linea.get("message", {}).get("content", "")
     texto = extraer_texto(content)
     if not texto:
         return False
+    # Descartar mensajes que son puramente tags de sistema
     if re.match(r'^\s*<', texto):
         return False
     return True
 
 
 def parsear_sesion(jsonl_path):
+    """
+    Parsea el JSONL y devuelve lista de turns + herramientas usadas.
+    Cada turn = dict con role, timestamp, texto, tools_usadas.
+    """
     lineas_raw = []
     with open(jsonl_path, encoding="utf-8") as f:
         for line in f:
@@ -93,6 +97,7 @@ def parsear_sesion(jsonl_path):
             except Exception:
                 continue
 
+    # Agrupar en turns: un turn = mensaje user + respuesta(s) assistant
     turns = []
     herramientas_globales = set()
     i = 0
@@ -104,6 +109,9 @@ def parsear_sesion(jsonl_path):
             texto_user = extraer_texto(linea.get("message", {}).get("content", ""))
             ts_user = linea.get("timestamp", "")
 
+            # Recopilar respuesta(s) de assistant a continuacion.
+            # Importante: los tool_result tambien tienen type="user" en el JSONL,
+            # solo romper cuando es un mensaje real del usuario.
             texto_claude = ""
             tools_turn = []
             j = i + 1
@@ -117,6 +125,7 @@ def parsear_sesion(jsonl_path):
                     t = extraer_texto(content)
                     if t and not texto_claude:
                         texto_claude = t
+                    # Extraer herramientas usadas en este turn
                     if isinstance(content, list):
                         for item in content:
                             if isinstance(item, dict) and item.get("type") == "tool_use":
@@ -126,6 +135,7 @@ def parsear_sesion(jsonl_path):
                                     herramientas_globales.add(nombre_tool)
                     j += 1
                 elif tipo_sig == "user" and es_mensaje_real_usuario(siguiente):
+                    # Solo romper si es un mensaje genuino del usuario (no tool_result)
                     break
                 else:
                     j += 1
@@ -145,6 +155,8 @@ def parsear_sesion(jsonl_path):
 
 
 def limpiar_nombre_archivo(texto, max_palabras=5):
+    """Primeras N palabras del texto, limpias para nombre de archivo."""
+    # Quitar caracteres no permitidos en nombres de archivo
     texto = re.sub(r'[<>:"/\\|?*\n\r\t]', ' ', texto)
     palabras = texto.split()[:max_palabras]
     nombre = " ".join(palabras)
@@ -152,20 +164,22 @@ def limpiar_nombre_archivo(texto, max_palabras=5):
 
 
 def ts_a_datetime(ts_str):
+    """Convierte timestamp ISO a datetime en hora local del sistema."""
     try:
         dt_utc = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
-        return dt_utc.astimezone()
+        return dt_utc.astimezone()  # Convierte a timezone local (America/Caracas = UTC-4)
     except Exception:
         return datetime.now().astimezone()
 
 
 def construir_markdown(session_id, cwd, turns, herramientas, dt_inicio):
+    """Construye el markdown completo de la conversacion."""
     proyecto = Path(cwd).name if cwd else "desconocido"
     fecha = dt_inicio.strftime("%Y-%m-%d")
     hora = dt_inicio.strftime("%H:%M")
 
     frontmatter = f"""---
-titulo: "Conversacion {hora} — {proyecto}"
+titulo: "Conversación {hora} — {proyecto}"
 tipo: conversacion
 departamento: infra-ia
 actualizado: {fecha}
@@ -181,7 +195,7 @@ herramientas_usadas: [{", ".join(herramientas)}]
         dt = ts_a_datetime(turn["timestamp"])
         hora_turn = dt.strftime("%H:%M:%S")
 
-        bloque = f"## Turn {num} — {hora_turn}\n\n**{NOMBRE_USUARIO}:** {turn['user']}"
+        bloque = f"## Turn {num} — {hora_turn}\n\n**Alejandro:** {turn['user']}"
 
         if turn["claude"]:
             bloque += f"\n\n**Claude:** {turn['claude']}"
@@ -192,12 +206,14 @@ herramientas_usadas: [{", ".join(herramientas)}]
         secciones.append(bloque)
 
     cuerpo = "\n\n---\n\n".join(secciones) if secciones else "_Sin turns registrados_"
-    return frontmatter + "\n\n" + cuerpo
+    link = "\n\n---\n\n[[01 Growth Engine/Infraestructura IA/Infraestructura IA]]"
+    return frontmatter + "\n\n" + cuerpo + link
 
 
 def main():
     data = leer_stdin()
 
+    # Obtener session_id y cwd
     session_id = (
         data.get("session_id")
         or os.environ.get("CLAUDE_SESSION_ID", "")
@@ -211,33 +227,42 @@ def main():
         print(json.dumps({}))
         return
 
+    # Encontrar archivo JSONL
     jsonl_path = encontrar_jsonl(data, session_id)
     if not jsonl_path:
         print(json.dumps({}))
         return
 
+    # Parsear sesion
     try:
         turns, herramientas = parsear_sesion(jsonl_path)
     except Exception:
         print(json.dumps({}))
         return
 
+    # Necesita al menos un turn real
     if not turns:
         print(json.dumps({}))
         return
 
+    # Timestamp de inicio (primer turn del usuario)
     dt_inicio = ts_a_datetime(turns[0]["timestamp"])
+
+    # Nombre basado en primeras 5 palabras del primer mensaje
     primer_texto = turns[0]["user"]
     nombre_corto = limpiar_nombre_archivo(primer_texto, max_palabras=5)
 
+    # Nombre final del archivo
     hora_str = dt_inicio.strftime("%H-%M")
     session_short = session_id[:6] if session_id else "??????"
     nombre_archivo = f"{hora_str} - {session_short} - {nombre_corto}.md"
 
+    # Crear carpeta por fecha
     fecha_str = dt_inicio.strftime("%Y-%m-%d")
     carpeta_dia = Path(CONVERSACIONES_DIR) / fecha_str
     carpeta_dia.mkdir(parents=True, exist_ok=True)
 
+    # Escribir (sobreescribir) el archivo
     markdown = construir_markdown(session_id, cwd, turns, herramientas, dt_inicio)
     archivo_destino = carpeta_dia / nombre_archivo
     archivo_destino.write_text(markdown, encoding="utf-8")

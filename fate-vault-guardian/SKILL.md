@@ -186,6 +186,8 @@ Despues de CADA operacion en el vault, verificar:
 - [ ] No se creo una carpeta innecesaria (verificar con los 5 pasos)
 - [ ] No se duplico informacion — esta linkeada con `[[]]`, no copiada
 - [ ] El archivo tiene al menos 1 link `[[]]` a otro nodo del vault (salvo MEMORY.md)
+- [ ] Si es `@creator` en Content Hacking: tiene `[[04 Content Hacking/{Pilar}/{Pilar}]]`
+- [ ] Si es sub-archivo de cliente (Marketing, Ventas, etc.): tiene `[[02 Clientes/{Plan}/{Cliente}/{Cliente}]]`
 - [ ] Si es SOP, esta en `03 SOPs/`, NO en `01 Growth Engine/`
 - [ ] Si se creo carpeta nueva, tiene dashboard .md dentro
 - [ ] Si el archivo va en `Memoria/`: NO contiene credenciales, tokens ni API keys
